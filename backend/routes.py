@@ -85,10 +85,10 @@ def create_song():
     existing_song = db.songs.find_one({"id": song_data["id"]})
     if existing_song:
         return {
-            "Message": f"song with id {existing_song['id']} already presentd"
+            "Message": f"song with id {existing_song['id']} already present"
             }, 302
 
-    inserted_id = db.songs.insert_one(song_data).inserted_id
+    inserted_id: InsertOneResult = db.songs.insert_one(song_data).inserted_id
     return {"inserted id": parse_json(inserted_id)}, 201
 
 
@@ -100,13 +100,10 @@ def update_song(id):
     if not existing_song:
         return {"message": "song not found"}, 404
 
-    comparison_values = {"id": id}
-    comparison_values.update(song_data)
-    same_song = db.songs.find_one(comparison_values)
-    if same_song:
+    res = db.songs.update_one({"id": id}, {"$set": song_data})
+    if res.modified_count == 0:
         return {"message": "song found, but nothing updated"}, 200
 
-    db.songs.update_one({"id": id}, {"$set": song_data})
     updated_song = db.songs.find_one({"id": id})
     return parse_json(updated_song), 201
 
